@@ -1,0 +1,24 @@
+<apex:component >
+    <apex:styleSheet value="{!URLFOR($Resource.styleSheets,'staticResourcesStylesheets/bootstrap.min.css')}" /> 
+    <!--  <apex:styleSheet value="{!URLFOR($Resource.styleSheets,'staticResourcesStylesheets/owl.carousel.css')}" />
+    <apex:styleSheet value="{!URLFOR($Resource.styleSheets,'staticResourcesStylesheets/owl.theme.css')}" />
+     <apex:styleSheet value="{!URLFOR($Resource.styleSheets,'staticResourcesStylesheets/owl.transitions.css')}" />  -->  
+    <apex:styleSheet value="{!URLFOR($Resource.styleSheets,'staticResourcesStylesheets/screen2.css')}" />
+    <apex:styleSheet value="{!URLFOR($Resource.styleSheets,'staticResourcesStylesheets/mobile.css')}" />
+     <!-- <apex:styleSheet value="{!URLFOR($Resource.styleSheets,'staticResourcesStylesheets/owl.carousel.animate.css')}" />   -->
+    <apex:styleSheet value="{!URLFOR($Resource.styleSheets,'staticResourcesStylesheets/font-awesome.min.css')}" />  
+     <!-- <link href='https://fonts.googleapis.com/css?family=PT+Sans' rel='stylesheet' type='text/css'/>   -->
+    
+    
+    <apex:includeScript value="{!URLFOR($Resource.scripts,'staticResourcesScripts/jquery-2.1.4.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.scripts,'staticResourcesScripts/jquery-ui.min.js')}"/>
+    
+    <apex:includeScript value="{!URLFOR($Resource.scripts,'staticResourcesScripts/bootstrap.min.js')}"/>    
+    <apex:includeScript value="{!URLFOR($Resource.scripts,'staticResourcesScripts/owl.carousel.min.js')}"/> 
+    <apex:includeScript value="{!URLFOR($Resource.scripts,'staticResourcesScripts/script.js')}"/> 
+    <apex:includeScript value="{!URLFOR($Resource.scripts,'staticResourcesScripts/angular.min.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.scripts,'staticResourcesScripts/ui-bootstrap-tpls-0.13.0.min.js')}"/>
+   <!-- <apex:includeScript value="{!URLFOR($Resource.scripts,'staticResourcesScripts/bootstrap-filestyle.min.js')}"/>   -->
+    <!--<apex:includeScript value="{!URLFOR($Resource.scripts,'staticResourcesScripts/GoogleMapApi.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.scripts,'staticResourcesScripts/GoogleMapsMain.js')}"/>-->
+</apex:component>
