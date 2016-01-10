@@ -1,0 +1,168 @@
+<apex:page standardStylesheets="false" controller="SOQLQueryGeneratorCtrl" sidebar="false" docType="html-5.0" showHeader="false">
+    <div class="slds-grid slds-grid--align-spread">
+        <div class="slds-col--padded" style="width: 150%;" >
+            <div class="slds-scrollable--x">
+                <div class="slds-text-heading--small">
+                    Available Objects
+                </div>                                      
+                <div style="margin-top:15px;">
+                    <ul id="sortable1" class="slds-scrollable--y slds-list--vertical slds-has-cards--space connectSortable"  style="overflow-y:auto;height:500px">
+                        <li ng-id="{{object.ObjectApiName}}" class="slds-list__item" ng-repeat="object in AvailableObjectsList" ng-if=" object.isCreateable == true  && object.isUpdateable == true && object.isQueryable == true" style="width:auto;margin-right:10px;">
+                            {{object.ObjectLabel}}
+                        </li>
+                    </ul>
+                </div>                                      
+            </div>                           
+        </div>  
+        <div class="slds-col--padded" style="width: 150%;">                         
+            <div class="slds-scrollable--x">
+                <div class="slds-text-heading--small">
+                    Selected Objects
+                </div>                                      
+                <div style="margin-top:15px;">
+                    <ul id="sortable2" class="slds-scrollable--y slds-list--vertical slds-has-cards--space connectSortable"  style="overflow-y:auto;height:500px">
+                        <li ng-click="showFields(object)" class="slds-list__item" ng-repeat="object in  SelectedObjectsList" style="width:auto;margin-right:10px;">
+                            {{object.ObjectLabel}}
+                        </li>
+                    </ul>
+                </div>                                      
+            </div>                           
+        </div>
+        <div class="slds-col--padded" style="width: 150%;">                                                                 
+            <div class="slds-scrollable--x">
+                <div class="slds-text-heading--small">
+                    Fields
+                </div>                                      
+                <div style="margin-top:15px;">
+                    <ul class="slds-scrollable--y slds-list--vertical slds-has-cards--space connectSortable"  style="overflow-y:auto;height:500px">
+                        <li ng-class="{'slds-box slds-theme--inverse' : fieldsChecked[field.fieldApiName] == true}" class="slds-list__item" ng-click="toggleSelected(this)" ng-repeat="field in FieldList" style="width:auto;margin-right:10px;">                                                   
+                            {{field.fieldLabel}}
+                            <!--<label class="slds-checkbox pull-right">
+                                <input name="checkbox" type="checkbox" ng-model="fieldsChecked[field.fieldApiName]" ng-change="updateQuery(this)"/>
+                                <span class="slds-checkbox--faux"></span>
+                                <span class="slds-form-element__label slds-assistive-text">select</span>
+                            </label>-->
+                        </li>
+                    </ul>
+                </div>                                      
+            </div>                                                      
+        </div>                                                         
+    </div>
+    <script type="text/javascript">
+        var j$ = jQuery.noConflict();
+        var queryGeneratorApp = angular.module('queryGenerator',[]);
+        var queryGeneratorCtrl = queryGeneratorApp.controller('queryGeneratorCtrl',['$scope','$q',function($scope,$q){   
+            $scope.AvailableObjectsList = [];
+            $scope.SelectedObjectsList = [];
+            $scope.FieldList = [];
+            $scope.fieldsChecked = {};   
+            $scope.finalQuery = ""; 
+            $scope.fieldsInQuery = "";     
+            $scope.isFieldChecked = [];     
+            var selectedObjList = {};
+            $scope.addRemoveField = function(fieldInfo){
+                console.log('field------->>>',fieldInfo.field);                 
+            };
+
+            $scope.toggleSelected = function(fieldInfo){
+                $scope.fieldApiName = fieldInfo.field.fieldApiName;
+                $scope.fieldApiName = $scope.fieldApiName.trim();
+                $scope.fieldsInQuery = "";
+                for (var key in $scope.fieldsChecked) {
+                    if ($scope.fieldsChecked.hasOwnProperty(key)) {
+                        console.log(key + " ----> " + $scope.fieldsChecked[key]);                           
+                        if($scope.fieldApiName == key){
+                            console.log(key + "before ----> " + $scope.fieldsChecked[key]);
+                            $scope.fieldsChecked[key] = !($scope.fieldsChecked[key]);
+                            console.log(key + "after ----> " + $scope.fieldsChecked[key]);
+                        }
+                        if($scope.fieldsChecked[key] == true){                              
+                            $scope.fieldsInQuery += key + ","; 
+                        }
+                    }
+                }
+                $scope.fieldsInQuery = $scope.fieldsInQuery.substring(0,$scope.fieldsInQuery.length-1);
+                console.log('fieldsInQuery after----------->>>',$scope.fieldsInQuery);
+                if($scope.fieldsInQuery == ""){
+                    $scope.finalQuery = "";
+                }else{
+                    $scope.finalQuery = "SELECT "+$scope.fieldsInQuery + " FROM " + $scope.objectName;  
+                }
+
+            }            
+
+            $scope.showFields = function(selectedObject){
+                console.log('selectedObject----->>>>'+selectedObject);
+                $scope.objects = selectedObject.ObjectApiName;
+                var deferred = $q.defer();              
+                var paramMap = {};
+                paramMap['ObjectApiName'] = selectedObject.ObjectApiName;
+                console.log('paramMap-->>>',paramMap);
+                Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.SOQLQueryGeneratorCtrl.fetchFields}',
+                        paramMap,
+                        function(result,event){
+                            if(event.status){
+                                $scope.$apply(function(){
+                                    $scope.FieldList = result.FieldsInfo;   
+                                    for(var i = 0 ; i<$scope.FieldList.length ; i++){
+                                        console.log('[$scope.FieldList[i]------>>>',$scope.FieldList[i]);
+                                        $scope.fieldsChecked[$scope.FieldList[i].fieldApiName] = $scope.FieldList[i].isChecked;
+                                    }
+                                });                                                     
+                            }                               
+                        },
+                        {escape:true}                       
+                );
+            };
+            $scope.initObjects = function(){
+                var deferred = $q.defer();              
+
+                Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.SOQLQueryGeneratorCtrl.initObjects}',
+                        function(result,event){
+                            if(event.status){
+                                $scope.$apply(function(){
+                                    $scope.AvailableObjectsList = result.InitObjectInfo;                                        
+                                });                                                     
+                            }                               
+                        },
+                        {escape:true}                       
+                );
+            };    
+
+            $scope.query = 'SELECT ';
+            $scope.objects = '';
+            $scope.fields = '';         
+            $scope.initObjects();
+
+
+            j$(document).ready(function(){
+                j$( "#sortable1,#sortable2" ).sortable({
+                    items: 'li',
+                    connectWith: "#sortable2",
+                    dropOnEmpty : true,
+                    placeholder: "sortable-placeholder",
+                    cursor:'pointer',                                                       
+                    scroll:true,
+                    receive : function(event,ui){
+                        console.log('item is dropped');
+                        console.log('ui.item--->>>',ui.item);
+                        console.log('angular.element(ui.item).scope()------>>>',angular.element(ui.item).scope());
+                        $scope.$apply(function(){                                                               
+                            $scope.selectedObject = angular.element(ui.item).scope().$parent.object;                                                        
+                            ui.item.remove();
+                            $scope.SelectedObjectsList.push($scope.selectedObject);
+                            $scope.SelectedObjectsLis;
+                            $scope.selectedObject={};
+                            $scope.fieldsChecked = {};
+                            console.log('SelectedObjectsList after------>>>'+$scope.SelectedObjectsList);
+                            console.log('SelectedObjectsList after------>>>'+$scope.SelectedObjectsList[0].ObjectApiName);
+                            $scope.objectName = $scope.SelectedObjectsList[0].ObjectApiName;
+                        });                         
+                    }
+                }).disableSelection();
+            });
+        }]);
+    </script>                                                                                                 
+</apex:page>
