@@ -7,14 +7,15 @@
         	.sortable-placeholder{
         		background-color : #F4F6F9;
         	}
+
+        	li:hover{
+        		cursor: pointer;
+        	}
         </style>
     </head>
 
     <body ng-app="queryGenerator" ng-controller="queryGeneratorCtrl" class="container">
-        <div class="slds">  
-            <p class="slds-text-heading--label slds-m-bottom--small">           
-                SOQL Query Generator
-            </p>     
+        <div class="slds">                  
             <div class="slds-grid">
             	<div class="container">
             		<div class="slds-form-element">
@@ -28,7 +29,7 @@
 		                <ul class="slds-tabs--scoped__nav" role="tablist">
 		                    <li class="slds-tabs--scoped__item slds-text-heading--label slds-active active" title="Item One" role="presentation" data-toggle="tab">
 		                        <a class="slds-tabs--scoped__link" href="#" onclick="selTab(this);" role="tab" tabindex="0" aria-selected="true" aria-controls="tab-scoped-1" id="tab-scoped-1__item">
-		                            Select Tables and Fields
+		                            Select Objects and Fields
 		                        </a>
 		                    </li>
 		                    <li class="slds-tabs--scoped__item slds-text-heading--label" title="Item Two" role="presentation" data-toggle="tab">
@@ -47,7 +48,7 @@
 		                		<div class="slds-col--padded" style="width: 150%;" >
 		                			<div class="slds-scrollable--x">
 		                				<div class="slds-text-heading--small">
-		                					Available Tables
+		                					Available Objects
 		                				</div>		                				
 					                    <div style="margin-top:15px;">
 					                    	<ul id="sortable1" class="slds-scrollable--y slds-list--vertical slds-has-cards--space connectSortable"  style="overflow-y:auto;height:500px">
@@ -61,7 +62,7 @@
 		                		<div class="slds-col--padded" style="width: 150%;">                			
 		                			<div class="slds-scrollable--x">
 		                				<div class="slds-text-heading--small">
-		                					Selected Tables
+		                					Selected Objects
 		                				</div>		                				
 					                    <div style="margin-top:15px;">
 					                    	<ul id="sortable2" class="slds-scrollable--y slds-list--vertical slds-has-cards--space connectSortable"  style="overflow-y:auto;height:500px">
@@ -72,49 +73,20 @@
 					                    </div>					                    
 		                			</div>               			 
 		                		</div>
-		                		<div class="slds-col--padded" style="width: 150%;">                					                			
-		                				<!--<table class="slds-table slds-table--striped">
-					                        <thead>
-					                            <tr class="slds-text-heading--label">		
-					                            	<th class="slds-cell-shrink" scope="col">
-										        		<label class="slds-checkbox" for="select-all">
-											          		<input name="checkbox" type="checkbox" id="select-all" />
-											          		<span class="slds-checkbox--faux"></span>
-											          		<span class="slds-form-element__label slds-assistive-text">select all</span>
-											        	</label>
-											      	</th>	                            
-					                                <th scope="col">			                                	                               	
-					                                    <span class="slds-is-sortable"><b>Available Fields</b></span>                                   			                                   
-					                                </th>
-					                            </tr>
-					                        </thead>
-					                        <tbody>  
-
-					                            <tr ng-id="{{field.fieldApiName}}"  class="slds-hint-parent" ng-repeat="field in FieldList">
-					                            	<td class="slds-cell-shrink" scope="col">
-										        		<label class="slds-checkbox">
-											          		<input name="checkbox" type="checkbox" ng-model="fieldsChecked[field.fieldApiName]" ng-change="updateQuery(this)"/>
-											          		<span class="slds-checkbox--faux"></span>
-											          		<span class="slds-form-element__label slds-assistive-text">select</span>
-											        	</label>
-											      	</td>
-					                               <td class="slds-cell-wrap" role="row">{{field.fieldLabel}}</td> 			                               
-					                            </tr>                                                                                    
-					                        </tbody>                        
-					                    </table>-->
+		                		<div class="slds-col--padded" style="width: 150%;">                					                				
 				                  	<div class="slds-scrollable--x">
 		                				<div class="slds-text-heading--small">
 		                					Fields
 		                				</div>		                				
 					                    <div style="margin-top:15px;">
 					                    	<ul class="slds-scrollable--y slds-list--vertical slds-has-cards--space connectSortable"  style="overflow-y:auto;height:500px">
-					                    		<li ng-click="showFields(object)" class="slds-list__item" ng-repeat="field in FieldList" style="width:auto;margin-right:10px;">					                    			
+					                    		<li ng-class="{'slds-box slds-theme--inverse' : fieldsChecked[field.fieldApiName] == true}" class="slds-list__item" ng-click="toggleSelected(this)" ng-repeat="field in FieldList" style="width:auto;margin-right:10px;">					                    			
 					                    			{{field.fieldLabel}}
-					                    			<label class="slds-checkbox pull-right">
+					                    			<!--<label class="slds-checkbox pull-right">
 										          		<input name="checkbox" type="checkbox" ng-model="fieldsChecked[field.fieldApiName]" ng-change="updateQuery(this)"/>
 										          		<span class="slds-checkbox--faux"></span>
 										          		<span class="slds-form-element__label slds-assistive-text">select</span>
-										        	</label>
+										        	</label>-->
 					                    		</li>
 					                    	</ul>
 					                    </div>					                    
@@ -141,29 +113,42 @@
             	$scope.FieldList = [];
             	$scope.fieldsChecked = {};   
             	$scope.finalQuery = ""; 
-            	$scope.fieldsInQuery = "";        	
-            	var selectedObjList = [];
+            	$scope.fieldsInQuery = "";     
+            	$scope.isFieldChecked = [];   	
+            	var selectedObjList = {};
             	$scope.addRemoveField = function(fieldInfo){
             		console.log('field------->>>',fieldInfo.field);            		
             	};
 
-            	$scope.updateQuery = function(fieldInfo){
+            	$scope.toggleSelected = function(fieldInfo){
+            		$scope.fieldApiName = fieldInfo.field.fieldApiName;
+            		$scope.fieldApiName = $scope.fieldApiName.trim();
             		$scope.fieldsInQuery = "";
             		for (var key in $scope.fieldsChecked) {
 					 	if ($scope.fieldsChecked.hasOwnProperty(key)) {
-					    	console.log(key + " ----> " + $scope.fieldsChecked[key]);
-					    	if($scope.fieldsChecked[key] == true){
+					    	console.log(key + " ----> " + $scope.fieldsChecked[key]);					    	
+					    	if($scope.fieldApiName == key){
+					    		console.log(key + "before ----> " + $scope.fieldsChecked[key]);
+					    		$scope.fieldsChecked[key] = !($scope.fieldsChecked[key]);
+					    		console.log(key + "after ----> " + $scope.fieldsChecked[key]);
+					    	}
+					    	if($scope.fieldsChecked[key] == true){					    		
 					    		$scope.fieldsInQuery += key + ","; 
 					    	}
 					  	}
 					}
-					console.log('fieldsInQuery before----------->>>',$scope.fieldsInQuery)
 					$scope.fieldsInQuery = $scope.fieldsInQuery.substring(0,$scope.fieldsInQuery.length-1);
 					console.log('fieldsInQuery after----------->>>',$scope.fieldsInQuery);
-					$scope.finalQuery = "SELECT "+$scope.fieldsInQuery + " FROM " + $scope.objectName;
-            	};
+					if($scope.fieldsInQuery == ""){
+						$scope.finalQuery = "";
+					}else{
+						$scope.finalQuery = "SELECT "+$scope.fieldsInQuery + " FROM " + $scope.objectName;	
+					}
+
+            	}            
 
             	$scope.showFields = function(selectedObject){
+            		console.log('selectedObject----->>>>'+selectedObject);
             		$scope.objects = selectedObject.ObjectApiName;
             		var deferred = $q.defer();            	
             		var paramMap = {};
